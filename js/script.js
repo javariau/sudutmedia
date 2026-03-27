@@ -69,3 +69,67 @@ const observer = new IntersectionObserver((entries, observer) => {
 animateElements.forEach(el => {
     observer.observe(el);
 });
+
+// --- Dynamic Article Loading ---
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('.news-title a') || e.target.closest('.news-card');
+    
+    if (link) {
+        // Find if this click leads to artikel.html
+        const href = (e.target.closest('a') && e.target.closest('a').href) || '';
+        if (href.includes('artikel.html') || (link.tagName === 'A' && link.href.includes('artikel.html'))) {
+            const card = link.closest('.news-card');
+            if (card) {
+                const titleEl = card.querySelector('.news-title');
+                const catEl = card.querySelector('.card-category');
+                const imgEl = card.querySelector('img');
+                const excerptEl = card.querySelector('.news-excerpt');
+                
+                const articleData = {
+                    title: titleEl ? titleEl.innerText : 'Berita Utama',
+                    category: catEl ? catEl.innerText : 'Berita',
+                    img: imgEl ? imgEl.src : '',
+                    excerpt: excerptEl ? excerptEl.innerText : ''
+                };
+                
+                sessionStorage.setItem('currentArticle', JSON.stringify(articleData));
+            }
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // If we are on artikel.html, load the dynamic data
+    if (window.location.pathname.includes('artikel.html') || document.title.includes('SUDUT MEDIA')) {
+        const articleDataStr = sessionStorage.getItem('currentArticle');
+        if (articleDataStr) {
+            try {
+                const articleData = JSON.parse(articleDataStr);
+                
+                const titleEl = document.querySelector('.article-title');
+                if (titleEl) titleEl.innerText = articleData.title;
+                
+                const catEl = document.querySelector('.article-category');
+                if (catEl) catEl.innerText = articleData.category;
+                
+                const imgEl = document.querySelector('.article-hero img');
+                if (imgEl && articleData.img) imgEl.src = articleData.img;
+                
+                document.title = articleData.title + " - SUDUT MEDIA";
+                
+                const firstP = document.querySelector('.article-body p');
+                if (firstP && articleData.excerpt && firstP.innerText.includes('SUDUT MEDIA')) {
+                    firstP.innerHTML = `<strong>SUDUT MEDIA, Jakarta</strong> - ${articleData.excerpt}... <br><br> ${firstP.innerHTML}`;
+                } else if (firstP && articleData.excerpt) {
+                   firstP.innerHTML = `<strong>SUDUT MEDIA, Jakarta</strong> - ${articleData.excerpt}...`;
+                }
+            } catch (e) {
+                console.error("Error loading article data", e);
+            }
+        }
+    }
+});
+
+
+// search bar
+
